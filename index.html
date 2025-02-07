@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math 24 Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 400px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        input, button {
+            margin: 10px 0;
+            padding: 10px;
+            width: 100%;
+            font-size: 16px;
+        }
+        .solution {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #28a745;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Math 24 Game</h2>
+        <p id="numbers"></p>
+        <input type="text" id="expression" placeholder="Enter your equation">
+        <button onclick="checkAnswer()">Submit</button>
+        <button onclick="generateNumbers()">New Numbers</button>
+        <button onclick="showSolutions()">Show Solutions</button>
+        <p id="result"></p>
+        <div id="solutions" class="solution"></div>
+    </div>
+    
+    <script>
+        let numbers = [];
+        function generateNumbers() {
+            numbers = Array.from({length: 4}, () => Math.floor(Math.random() * 9) + 1);
+            document.getElementById("numbers").innerText = "Numbers: " + numbers.join(", ");
+            document.getElementById("result").innerText = "";
+            document.getElementById("solutions").innerText = "";
+        }
+        function checkAnswer() {
+            let expr = document.getElementById("expression").value;
+            try {
+                let usedNumbers = expr.match(/\d+/g).map(Number);
+                if (!usedNumbers.every(num => numbers.includes(num))) {
+                    document.getElementById("result").innerText = "Incorrect: Use given numbers!";
+                    return;
+                }
+                let result = evaluateExpression(expr);
+                document.getElementById("result").innerText = (result === 24) ? "✅ Correct!" : "❌ Incorrect!";
+            } catch {
+                document.getElementById("result").innerText = "⚠️ Invalid expression!";
+            }
+        }
+        function evaluateExpression(expr) {
+            let tokens = expr.split(/([+\-*/])/);
+            let result = parseFloat(tokens.shift());
+            while (tokens.length) {
+                let op = tokens.shift();
+                let num = parseFloat(tokens.shift());
+                if (op === "+") result += num;
+                else if (op === "-") result -= num;
+                else if (op === "*") result *= num;
+                else if (op === "/") result /= num;
+            }
+            return result;
+        }
+        function showSolutions() {
+            let ops = ['+', '-', '*', '/'];
+            let solutions = [];
+            let permute = arr => arr.length === 1 ? [arr] : arr.flatMap((v, i) => permute(arr.slice(0, i).concat(arr.slice(i + 1))).map(p => [v, ...p]));
+            for (let perm of permute(numbers)) {
+                for (let op1 of ops) {
+                    for (let op2 of ops) {
+                        for (let op3 of ops) {
+                            let expr = `${perm[0]} ${op1} ${perm[1]} ${op2} ${perm[2]} ${op3} ${perm[3]}`;
+                            if (Math.abs(evaluateExpression(expr) - 24) < 1e-6) solutions.push(expr);
+                        }
+                    }
+                }
+            }
+            document.getElementById("solutions").innerText = solutions.length ? solutions.slice(0, 5).join(" | ") : "No solutions found!";
+        }
+        generateNumbers();
+    </script>
+</body>
+</html>
+
+
